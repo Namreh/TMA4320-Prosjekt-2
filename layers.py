@@ -124,6 +124,7 @@ class CrossEntropy(Layer):
         """
         Your code here
         """
+        self.y = y
         return
 
 
@@ -132,7 +133,7 @@ class CrossEntropy(Layer):
         Your code here
         """
         ## Fungerer dette?
-        self.grad_Z = -(1/n)*(np.divide(onehot(y),(Y_hat + 10e-8)))
+        self.grad_Z = -(1/n)*(np.divide(onehot(self.y),(Y_hat + 10e-8)))
         return
     
 
