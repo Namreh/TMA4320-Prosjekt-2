@@ -78,8 +78,8 @@ class Softmax(Layer):
         
         z_l = np.divide(P, (Q + 10e-8))
         self.z_l = z_l
-        self.x = x
-        return
+        self.z = z
+        return z_l
 
 
     def backward(self,grad):
