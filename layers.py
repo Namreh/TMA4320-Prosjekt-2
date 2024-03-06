@@ -105,7 +105,7 @@ class Softmax(Layer):
         
         S = np.divide(self.P,(np.multiply(self.Q,self.Q)+10e-8))
         delLdelZ = np.multiply(g_l,self.z_l) - np.multiply(np.sum((np.multiply(g_l,S)), axis = 1, keepdims = True),self.P)
-
+        self.delLdelZ = delLdelZ
         return delLdelZ
 
 
