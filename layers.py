@@ -72,9 +72,11 @@ class Softmax(Layer):
 
     
     def forward(self,x):
-        """
-        Your code here
-        """
+
+        P = np.exp(x-x.max(axis = 1, keepdims = True))
+        Q = np.sum(P, axis = 1, keepdims = True)
+        ## Lagre som dette
+        ## self.x = x
         return
 
 
