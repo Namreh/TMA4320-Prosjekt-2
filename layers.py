@@ -16,12 +16,34 @@ class Layer:
     def backward(self,grad):
         raise NotImplementedError
     
-    def step_Adam(self, L, ):
-        return
+    def step_Adam(self, alpha, beta1=0.9, beta2=0.999, epsilon=1e-8):
+
+        M = {}
+        V = {}
+        t = 0
         
-    
+        for param in self.params:
+            M[param] = np.zeros_like(self.params[param]['w'])
+            V[param] = np.zeros_like(self.params[param]['w'])
+
+        for param in self.params:
+            t += 1
+            G = self.params[param]['d']
+            
+            M[param] = beta1 * M[param] + (1 - beta1) * G
+            
+            V[param] = beta2 * V[param] + (1 - beta2) * (G ** 2)
+            
+            M_hat = M[param] / (1 - beta1 ** t)
+            
+            V_hat = V[param] / (1 - beta2 ** t)
+            
+            #Prøver å oppdatere Params likt som i step_dg
+            self.params[param]['w'] -= alpha * M_hat / (np.sqrt(V_hat) + epsilon)
+
     
     def step_gd(self,alpha):
+    
         """
         Performs a gradient descent step given learning rate.
         Assumes that the layer has a parameter dictionary "params" on the form
