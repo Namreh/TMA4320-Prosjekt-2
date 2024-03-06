@@ -7,7 +7,7 @@ class Layer:
     Base class for layers in the neural network with forward and backward pass.
     """
     def __init__(self):
-        
+        self.params = {}  
         return
 
     def forward(self,inputs):
@@ -34,11 +34,9 @@ class Layer:
             G = self.params[param]['d']
             
             self.M[param] = beta1 * self.M[param] + (1 - beta1) * G
-            
             self.V[param] = beta2 * self.V[param] + (1 - beta2) * (G ** 2)
             
             M_hat = self.M[param] / (1 - beta1 ** t)
-            
             V_hat = self.V[param] / (1 - beta2 ** t)
             
             self.params[param]['w'] -= alpha * M_hat / (np.sqrt(V_hat) + epsilon)
@@ -62,6 +60,19 @@ class Layer:
         """
         for param in self.params:
             self.params[param]['w'] -= alpha*self.params[param]['d']
+    
+    def train_neural_network_in_batches(self, alpha, beta1, beta2, dataset, n_iter):
+
+        for j in range(n_iter):
+            for k in range(len(dataset)):
+                x, y = dataset[k]
+                Y_hat = self.forward(x)
+                Ljk = CrossEntropy(Y_hat, y)
+                self.backward(Ljk)
+                
+                self.step_Adam(alpha, beta1, beta2)
+        
+        return self.params
 
 
 
