@@ -73,20 +73,20 @@ class Softmax(Layer):
     
     def forward(self,z):
 
-        P = np.exp(z-z.max(axis = 1, keepdims = True))
-        Q = np.sum(P, axis = 1, keepdims = True)
+        self.P = np.exp(z-z.max(axis = 1, keepdims = True))
+        self.Q = np.sum(P, axis = 1, keepdims = True)
         
-        z_l = np.divide(P, (Q + 10e-8))
-        self.z_l = z_l
+        self.z_l = np.divide(P, (Q + 10e-8))
         self.z = z
-        return z_l
+        return self.z_l
 
 
-    def backward(self,grad):
-        """
-        Your code here
-        """
-        return
+    def backward(self,g_l):
+        
+        S = np.divide(P,(np.multiply(self.Q,self.Q)+10e-8))
+        delLdelZ = np.multiply(g_l,self.z_l) - np.multiply(np.sum((np.multiply(g_l,S)), axis = 1, keepdims = True),self.P)
+
+        return delLdelZ
 
 
 
