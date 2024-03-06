@@ -95,6 +95,10 @@ class Attention(Layer):
 
         g_s = self.softmax.backward(np.transpose(self.z)@g_ov)
 
+        #regner ut deriverte mhp parameterene, lagrer disse
+        self.params['wk']['d'] = self.Wq@self.z@g_s@np.transpose(self.z)
+        self.params['wq']['d'] = self.Wk@self.z@np.transpose(g_s)@np.transpose(self.z)
+
         return self.grad + g_ov@np.transpose(self.A) + np.transpose(self.Wk)@self.Wq@self.z@np.tranpose(g_s)
     
     #definerer egen step_gd funksjon
