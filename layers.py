@@ -70,7 +70,7 @@ class Attention(Layer):
 
         A = self.softmax.forward(B)
 
-        return self.z
+        return self.z + self.Fo.forward(self.Fv.forward(self.z@A))
 
 
     def backward(self,grad):
