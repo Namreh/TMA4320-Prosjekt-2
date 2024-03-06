@@ -19,13 +19,13 @@ class Layer:
     def step_Adam(self, alpha, beta1=0.9, beta2=0.999, epsilon=1e-8):
 
         #Initialiserer M og V kun første gangen
-        if not hasattr(self, 'moments_initialized'):
+        if not hasattr(self, 'allerede_initialized'):
             self.M = {}
             self.V = {}
             for param in self.params:
                 self.M[param] = np.zeros_like(self.params[param]['w'])
                 self.V[param] = np.zeros_like(self.params[param]['w'])
-            self.moments_initialized = True
+            self.allerede_initialized = True
         
         t = 0
         
