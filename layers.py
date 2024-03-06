@@ -95,6 +95,10 @@ class Attention(Layer):
 
         g_s = self.softmax.backward(np.transpose(self.z)@g_ov)
 
+        #regner ut d for de ulike parameterene
+        
+
+        #returnerer dL/dz
         return self.grad + g_ov@np.transpose(self.A) + np.transpose(self.Wk)@self.Wq@self.z@np.tranpose(g_s)
     
     #definerer egen step_gd funksjon
