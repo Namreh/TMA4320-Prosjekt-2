@@ -86,7 +86,7 @@ class Attention(Layer):
     def backward(self,grad):
         self.grad = grad
 
-        g_ov = self.Fv.backward(self.Fo.backward(self.grad))
+        g_ov = self.Wv.backward(self.Wo.backward(self.grad))
 
         g_s = self.softmax.backward(np.transpose(self.z)@g_ov)
 
