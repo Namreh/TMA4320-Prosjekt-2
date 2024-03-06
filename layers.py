@@ -103,9 +103,16 @@ class Attention(Layer):
 
     def forward(self,z):
         self.z = z
-
+        #z = (b,i,j) wq = (jk)
         #definerer matrisen, B, som skal gis til softmax
-        B = np.einsum('bnd,dk,kd,bdn->bnn', self.z,self.Wq,self.Wk,self.z)
+
+        #z-transponert med Wq transponert
+        B = np.einsum('bji,ik->bjk', self.z, self.Wq)
+        #Wk med z
+        C = np.einsum('ij,bjk->bik', self.Wk, self.z)
+
+        # all together!
+        B = np.einsum('aef,bfg->aeg', B, C)
 
         #setter nedre triangularen til B til -inf
         i1, i2 = np.tril_indices(self.k,-1)
