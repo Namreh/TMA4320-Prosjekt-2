@@ -65,9 +65,7 @@ class Attention(Layer):
 class Softmax(Layer):
 
     def __init__(self,your_arguments_here):
-        """
-        Your code here
-        """
+        
         return
 
     
