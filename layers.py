@@ -120,7 +120,7 @@ class CrossEntropy(Layer):
 
         
 
-    def forward(self,x):
+    def forward(self,Z,y):
         """
         Your code here
         """
@@ -131,6 +131,8 @@ class CrossEntropy(Layer):
         """
         Your code here
         """
+        ## Fungerer dette?
+        self.grad_Z = -(1/n)*(np.divide(onehot(y),(Y_hat + 10e-8)))
         return
     
 
