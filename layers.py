@@ -71,12 +71,14 @@ class Softmax(Layer):
         return
 
     
-    def forward(self,x):
+    def forward(self,z):
 
-        P = np.exp(x-x.max(axis = 1, keepdims = True))
+        P = np.exp(z-z.max(axis = 1, keepdims = True))
         Q = np.sum(P, axis = 1, keepdims = True)
-        ## Lagre som dette
-        ## self.x = x
+        
+        z_l = np.divide(P, (Q + 10e-8))
+        self.z_l = z_l
+        self.x = x
         return
 
 
