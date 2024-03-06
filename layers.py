@@ -15,30 +15,32 @@ class Layer:
 
     def backward(self,grad):
         raise NotImplementedError
-    
+
     def step_Adam(self, alpha, beta1=0.9, beta2=0.999, epsilon=1e-8):
 
-        M = {}
-        V = {}
+        #Initialiserer M og V kun første gangen
+        if not hasattr(self, 'moments_initialized'):
+            self.M = {}
+            self.V = {}
+            for param in self.params:
+                self.M[param] = np.zeros_like(self.params[param]['w'])
+                self.V[param] = np.zeros_like(self.params[param]['w'])
+            self.moments_initialized = True
+        
         t = 0
         
-        for param in self.params:
-            M[param] = np.zeros_like(self.params[param]['w'])
-            V[param] = np.zeros_like(self.params[param]['w'])
-
         for param in self.params:
             t += 1
             G = self.params[param]['d']
             
-            M[param] = beta1 * M[param] + (1 - beta1) * G
+            self.M[param] = beta1 * self.M[param] + (1 - beta1) * G
             
-            V[param] = beta2 * V[param] + (1 - beta2) * (G ** 2)
+            self.V[param] = beta2 * self.V[param] + (1 - beta2) * (G ** 2)
             
-            M_hat = M[param] / (1 - beta1 ** t)
+            M_hat = self.M[param] / (1 - beta1 ** t)
             
-            V_hat = V[param] / (1 - beta2 ** t)
+            V_hat = self.V[param] / (1 - beta2 ** t)
             
-            #Prøver å oppdatere Params likt som i step_dg
             self.params[param]['w'] -= alpha * M_hat / (np.sqrt(V_hat) + epsilon)
 
     
