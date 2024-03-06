@@ -40,10 +40,9 @@ class Layer:
 class Attention(Layer):
 
     def __init__(self, d, k):
-
-        #definerer parametermatrisene Wq Wk
-        self.Wq = np.zeros((d,k)) #OBS! vet ikke hvordan disse skal bestemmes
-        self.Wk = np.zeros((d,k))
+        #definerer parametermatrisene Wq Wk som tilfeldige variabler
+        self.Wq = np.random.randn(d,k)*0.1
+        self.Wk = np.random.randn(d,k)*0.1
 
         #definerer nødvendige variabler
         self.d = d
@@ -51,8 +50,19 @@ class Attention(Layer):
 
         #definerer nødvendige lag innad i attention laget
         self.softmax = Softmax()
-        self.Fo = LinearLayer(k, d)
-        self.Fv = LinearLayer(k, d)
+        self.Wo = LinearLayer(k, d)
+        self.Wv = LinearLayer(k, d)
+
+        self.params = {
+            'wq':{
+                'w' : self.Wq,
+                'd' : np.zeros_like(self.Wq)
+            },
+            'wk':{
+                'w' : self.Wk,
+                'd' : np.zeros_like(self.Wk)
+            },
+        }
     
         return
 
@@ -70,7 +80,7 @@ class Attention(Layer):
 
         self.A = self.softmax.forward(B)
 
-        return self.z + self.Fo.forward(self.Fv.forward(self.z@self.A))
+        return self.z + self.Wo.forward(self.Wv.forward(self.z@self.A))
 
 
     def backward(self,grad):
@@ -82,6 +92,14 @@ class Attention(Layer):
 
         return self.grad + g_ov@np.transpose(self.A) + np.transpose(self.Wk)@self.Wq@self.z@np.tranpose(g_s)
     
+    #definerer egen step_gd funksjon
+    def step_gd(self, alpha):
+        self.Wo.step_gd(alpha)
+        self.Wv.step_gd(alpha)
+
+        #kjører originale step_gd funksjonen fra layers
+        super.step_gd(alpha)
+
 
 
 class Softmax(Layer):
