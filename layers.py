@@ -139,21 +139,26 @@ class CrossEntropy(Layer):
         
 
     def forward(self,Z,y):
-        """
-        Your code here
-        """
+
         self.y = y
         self.Z = Z
-        return
+
+        self.m = Z.shape(0)
+        self.n = Z.shape(1)
+
+        self.p = np.ones(self.m)@(np.mult(Z,onehot(y,self.m)))
+        self.q = -np.log(self.p)
+
+        self.L = (1/self.n)*np.sum(self.q)
+        
+        return self.L
 
 
     def backward(self):
-        """
-        Your code here
-        """
-        ## Fungerer dette?
-        self.grad_Z = -(1/n)*(np.divide(onehot(self.y),(self.Z + 10e-8)))
-        return
+        
+        self.grad_Z = -(1/self.n)*(np.divide(onehot(self.y, self.m),(self.Z + 10e-8)))
+
+        return self.grad_Z
     
 
 
