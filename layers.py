@@ -68,16 +68,19 @@ class Attention(Layer):
         i1, i2 = np.tril_indices(self.k,-1)
         B[i1,i2] -= np.inf
 
-        A = self.softmax.forward(B)
+        self.A = self.softmax.forward(B)
 
-        return self.z + self.Fo.forward(self.Fv.forward(self.z@A))
+        return self.z + self.Fo.forward(self.Fv.forward(self.z@self.A))
 
 
     def backward(self,grad):
-        
-        
+        self.grad = grad
 
-        return
+        g_ov = self.Fv.backward(self.Fo.backward(self.grad))
+
+        g_s = self.softmax.backward(np.transpose(self.z)@g_ov)
+
+        return self.grad + g_ov@np.transpose(self.A) + np.transpose(self.Wk)@self.Wq@self.z@np.tranpose(g_s)
     
 
 
