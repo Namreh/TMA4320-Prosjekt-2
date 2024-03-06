@@ -39,25 +39,44 @@ class Layer:
 
 class Attention(Layer):
 
-    def __init__(self,your_arguments_here):
-        """
-        Your code here
-        """
+    def __init__(self, d, k):
+
+        #definerer parametermatrisene Wq Wk
+        self.Wq = np.zeros((d,k)) #OBS! vet ikke hvordan disse skal bestemmes
+        self.Wk = np.zeros((d,k))
+
+        #definerer nødvendige variabler
+        self.d = d
+        self.k = k
+
+        #definerer nødvendige lag innad i attention laget
+        self.softmax = Softmax()
+        self.Fo = LinearLayer(k, d)
+        self.Fv = LinearLayer(k, d)
+    
         return
 
         
 
-    def forward(self,x):
-        """
-        Your code here
-        """
-        return
+    def forward(self,z):
+        self.z = z
+
+        #definerer matrisen, B, som skal gis til softmax
+        B = np.transpose(self.z)@np.transpose(self.Wq)@self.Wk@self.z
+
+        #setter nedre triangularen til B til -inf
+        i1, i2 = np.tril_indices(self.k,-1)
+        B[i1,i2] -= np.inf
+
+        A = self.softmax.forward(B)
+
+        return self.z
 
 
     def backward(self,grad):
-        """
-        Your code here
-        """
+        
+        
+
         return
     
 
