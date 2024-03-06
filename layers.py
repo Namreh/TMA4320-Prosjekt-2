@@ -86,9 +86,9 @@ class Attention(Layer):
 
 class Softmax(Layer):
 
-    def __init__(self,your_arguments_here):
+    def __init__(self):
         
-        return
+        return self
 
     
     def forward(self,z):
