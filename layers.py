@@ -6,9 +6,12 @@ class Layer:
     """
     Base class for layers in the neural network with forward and backward pass.
     """
-    def __init__(self):
-        self.params = {}  
-        return
+    def __init__(self, M_init=None, V_init=None):
+        self.params = {}
+        if M_init is not None and V_init is not None:
+            for param, M, V in zip(self.params, M_init, V_init):
+                self.params[param + '_M'] = M
+                self.params[param + '_V'] = V
 
     def forward(self,inputs):
         raise NotImplementedError
@@ -18,63 +21,53 @@ class Layer:
 
     def step_Adam(self, alpha, beta1=0.9, beta2=0.999, epsilon=1e-8):
 
-        #Initialiserer M og V kun første gangen
-        if not hasattr(self, 'allerede_initialized'):
-            self.M = {}
-            self.V = {}
-            for param in self.params:
-                self.M[param] = np.zeros_like(self.params[param]['w'])
-                self.V[param] = np.zeros_like(self.params[param]['w'])
-            self.allerede_initialized = True
-        
         t = 0
         
         for param in self.params:
             t += 1
             G = self.params[param]['d']
+            M = self.params[param + '_M']
+            V = self.params[param + '_V']
             
-            self.M[param] = beta1 * self.M[param] + (1 - beta1) * G
-            self.V[param] = beta2 * self.V[param] + (1 - beta2) * (G ** 2)
+            M = beta1 * M + (1 - beta1) * G
+            V = beta2 * V + (1 - beta2) * (G ** 2)
             
-            M_hat = self.M[param] / (1 - beta1 ** t)
-            V_hat = self.V[param] / (1 - beta2 ** t)
+            M_hat = M / (1 - beta1 ** t)
+            V_hat = V / (1 - beta2 ** t)
             
             self.params[param]['w'] -= alpha * M_hat / (np.sqrt(V_hat) + epsilon)
 
     
     def step_gd(self,alpha):
     
-        """
-        Performs a gradient descent step given learning rate.
-        Assumes that the layer has a parameter dictionary "params" on the form
-
-        params = {
-            'w1': {         
-                'w': w,         The parameter matrix
-                'd': d,         The gradient of loss wrt the parameter matrix
-                },
-            'w2': {....},
-            
-        }
-        where each parameter has a key 'w' for weights and 'd' for gradients.
-        """
         for param in self.params:
             self.params[param]['w'] -= alpha*self.params[param]['d']
-    
-    def train_neural_network_in_batches(self, alpha, beta1, beta2, dataset, n_iter):
 
+    def train_neural_network_in_batches(self, alpha, beta1, beta2, dataset, n_iter):
+        epsilon = 1e-8
+        t = 0
         for j in range(n_iter):
             for k in range(len(dataset)):
+                t += 1
                 x, y = dataset[k]
                 Y_hat = self.forward(x)
-                Ljk = CrossEntropy(Y_hat, y)
+                Ljk = CrossEntropy().forward(Y_hat, y)
                 self.backward(Ljk)
-                
-                self.step_Adam(alpha, beta1, beta2)
-        
+
+                for param in self.params:
+                    G = self.params[param]['d']
+                    M = self.params[param + '_M']
+                    V = self.params[param + '_V']
+                    
+                    M = beta1 * M + (1 - beta1) * G
+                    V = beta2 * V + (1 - beta2) * (G ** 2)
+                    
+                    M_hat = M / (1 - beta1 ** t)
+                    V_hat = V / (1 - beta2 ** t)
+                    
+                    self.params[param]['w'] -= alpha * M_hat / (np.sqrt(V_hat) + epsilon)
+
         return self.params
-
-
 
 
 class Attention(Layer):
