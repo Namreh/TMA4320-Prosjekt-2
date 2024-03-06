@@ -111,7 +111,7 @@ class Softmax(Layer):
 
     def __init__(self):
         
-        return self
+        return
 
     
     def forward(self,z):
@@ -135,7 +135,7 @@ class Softmax(Layer):
 
 class CrossEntropy(Layer):
 
-    def __init__(self,your_arguments_here):
+    def __init__(self):
         """
         Your code here
         """
