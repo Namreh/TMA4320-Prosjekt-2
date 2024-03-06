@@ -188,8 +188,9 @@ class CrossEntropy(Layer):
         self.Z = Z
 
         #Definerer størrelser på dimensjoner
-        self.m = Z.shape[0]
-        self.n = Z.shape[1]
+        self.b = Z.shape[0]
+        self.m = Z.shape[1]
+        self.n = Z.shape[2]
 
         #Definerer 
         self.p = np.ones(self.m)@(np.multiply(Z,onehot(y,self.m)))
