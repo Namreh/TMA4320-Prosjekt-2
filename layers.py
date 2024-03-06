@@ -117,6 +117,10 @@ class Attention(Layer):
 
         g_s = self.softmax.backward(np.transpose(self.z)@g_ov)
 
+        #regner ut deriverte mhp parameterene, lagrer disse
+        self.params['wk']['d'] = self.Wq@self.z@g_s@np.transpose(self.z)
+        self.params['wq']['d'] = self.Wk@self.z@np.transpose(g_s)@np.transpose(self.z)
+
         return self.grad + g_ov@np.transpose(self.A) + np.transpose(self.Wk)@self.Wq@self.z@np.tranpose(g_s)
     
     #definerer egen step_gd funksjon
@@ -170,10 +174,12 @@ class CrossEntropy(Layer):
         self.y = y
         self.Z = Z
 
-        self.m = Z.shape(0)
-        self.n = Z.shape(1)
+        #Definerer størrelser på dimensjoner
+        self.m = Z.shape[0]
+        self.n = Z.shape[1]
 
-        self.p = np.ones(self.m)@(np.mult(Z,onehot(y,self.m)))
+        #Definerer 
+        self.p = np.ones(self.m)@(np.multiply(Z,onehot(y,self.m)))
         self.q = -np.log(self.p)
 
         self.L = (1/self.n)*np.sum(self.q)
