@@ -16,6 +16,11 @@ class Layer:
     def backward(self,grad):
         raise NotImplementedError
     
+    def step_Adam(self, L, ):
+        return
+        
+    
+    
     def step_gd(self,alpha):
         """
         Performs a gradient descent step given learning rate.
