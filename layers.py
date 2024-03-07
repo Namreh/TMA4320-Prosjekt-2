@@ -122,14 +122,10 @@ class Attention(Layer):
         self.grad = grad
 
         g_ov = self.Wv.backward(self.Wo.backward(self.grad))
+        g_s = self.softmax.backward(np.einsum('bij,bik->bjk', self.z, g_ov))
 
-        g_s = self.softmax.backward(np.transpose(self.z)@g_ov)
 
-        #regner ut deriverte mhp parameterene, lagrer disse
-        self.params['wk']['d'] = self.Wq@self.z@g_s@np.transpose(self.z)
-        self.params['wq']['d'] = self.Wk@self.z@np.transpose(g_s)@np.transpose(self.z)
-
-        return self.grad + g_ov@np.transpose(self.A) + np.transpose(self.Wk)@self.Wq@self.z@np.tranpose(g_s)
+        return self.grad + np.einsum('bij,bkj->bik', g_ov, self.A) + np.einsum('ij,ik,bkl,blm->bjm', self.Wk, self.Wq, self.z, g_s) + np.einsum('ij,ik,bkl,bml->bjm', self.Wq, self.Wk, self.z, g_s)
     
     #definerer egen step_gd funksjon
     def step_gd(self, alpha):
@@ -198,7 +194,7 @@ class CrossEntropy(Layer):
 
     def backward(self):
         
-        self.grad_Z = -(1/self.n)*(np.divide(onehot(self.y, self.m),(self.Z + 10e-8)))
+        self.grad_Z = -(1/(self.n*self.b))*(np.divide(onehot(self.y, self.m),(self.Z + 10e-8)))
 
         return self.grad_Z
     
