@@ -74,8 +74,8 @@ class Attention(Layer):
 
     def __init__(self, d, k):
         #definerer parametermatrisene Wq Wk som tilfeldige variabler
-        self.Wq = np.random.randn(d,k)*0.1
-        self.Wk = np.random.randn(d,k)*0.1
+        self.Wq = np.random.randn(k,d)*0.1
+        self.Wk = np.random.randn(k,d)*0.1
 
         #definerer nødvendige variabler
         self.d = d
@@ -84,7 +84,7 @@ class Attention(Layer):
         #definerer nødvendige lag innad i attention laget
         self.softmax = Softmax()
         self.Wo = LinearLayer(k, d)
-        self.Wv = LinearLayer(k, d)
+        self.Wv = LinearLayer(d, k)
 
         self.params = {
             'wq':{
@@ -103,24 +103,19 @@ class Attention(Layer):
 
     def forward(self,z):
         self.z = z
-        #z = (b,i,j) wq = (jk)
-        #definerer matrisen, B, som skal gis til softmax
-
-        #z-transponert med Wq transponert
-        B = np.einsum('bji,ik->bjk', self.z, self.Wq)
-        #Wk med z
-        C = np.einsum('ij,bjk->bik', self.Wk, self.z)
-
-        # all together!
-        B = np.einsum('aef,bfg->aeg', B, C)
+        
+        #Utfører operasjonen z^T @ W_Q^T @ W_K @ z
+        B = np.einsum('bij,ki,kl,blm->bjm', self.z, self.Wq, self.Wk, self.z)
 
         #setter nedre triangularen til B til -inf
         i1, i2 = np.tril_indices(self.k,-1)
         B[i1,i2] -= np.inf
 
+        #Utfører softmax
         self.A = self.softmax.forward(B)
 
-        return self.z + self.Wo.forward(self.Wv.forward(np.einsum('bdn,nn->bdn',self.z,self.A)))
+        #Ligning 20
+        return self.z  + self.Wo.forward(self.Wv.forward(np.einsum('bij,bjk->bik',self.z,self.A)))
 
 
     def backward(self,grad):
