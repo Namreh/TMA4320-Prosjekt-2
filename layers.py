@@ -187,11 +187,11 @@ class CrossEntropy(Layer):
         self.m = Z.shape[1]
         self.n = Z.shape[2]
 
-        #Definerer 
-        self.p = np.ones(self.m)@(np.multiply(Z,onehot(y,self.m)))
+        #Definerer ones = (b,m) andre= (b,m,n)
+        self.p = np.einsum('bm,bmn->bn', np.ones((self.b,self.m)), np.multiply(Z,onehot(y,self.m)))
         self.q = -np.log(self.p)
 
-        self.L = (1/self.n)*np.sum(self.q)
+        self.L = (1/(self.b*self.n))*np.sum(self.q)
         
         return self.L
 
