@@ -95,7 +95,7 @@ class Attention(Layer):
 
         #setter nedre triangularen til B til -inf
         i1, i2 = np.tril_indices(self.k,-1)
-        B[i1,i2] -= np.inf
+        B[:,i1,i2] -= np.inf
 
         #Utfører softmax
         self.A = self.softmax.forward(B)
