@@ -299,8 +299,8 @@ class EmbedPosition(Layer):
         self.params = {"Wp":{
             'w':self.w,
             'd':None,
-            'm' : None,
-            'v' : None}}
+            'm' : np.zeros_like(self.w),
+            'v' : np.zeros_like(self.w)}}
 
     def forward(self,X):
 
