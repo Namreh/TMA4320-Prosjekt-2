@@ -6,8 +6,8 @@ class Layer:
     Base class for layers in the neural network with forward and backward pass.
     """
     def __init__(self):
-        self.params = {}
-        
+        #counter for hvilken iterasjon vi er på
+        self.j = 0
         return
 
     def forward(self,inputs):
@@ -17,10 +17,10 @@ class Layer:
         raise NotImplementedError
 
     def step_Adam(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
-        j = 1
+        self.j += 1 #oppdaterer hvilken iterasjon vi er på
+
         #For å unngå to løkker, og samtidig oppdatere j for hver gang
         for param in self.params:
-            j += 1
             G = self.params[param]['d']
             M = self.params[param]['m']
             V = self.params[param]['v']
@@ -28,8 +28,8 @@ class Layer:
             self.params[param]['m'] = beta1 * M + (1 - beta1) * G
             self.params[param]['v'] = beta2 * V + (1 - beta2) * (np.multiply(G,G)) #Kan ta vel ta G**2?
 
-            M_hat = M / (1 - beta1**j)
-            V_hat = V / (1 - beta2**j)
+            M_hat = M / (1 - beta1**self.j)
+            V_hat = V / (1 - beta2**self.j)
 
             self.params[param]['w'] -= alpha * (np.divide(M_hat, (np.sqrt(V_hat) + epsilon)))
 
@@ -82,10 +82,10 @@ class Attention(Layer):
                 'v' : np.zeros_like(self.Wk)
             },
         }
-    
+
+        super().__init__() #bruker dette for å forsikre oss at alle layers kjører init til Layer
         return
 
-        
 
     def forward(self,z):
         self.z = z
@@ -111,7 +111,8 @@ class Attention(Layer):
         g_ov = self.Wv.backward(self.Wo.backward(self.grad))
         g_s = self.softmax.backward(np.einsum('bij,bik->bjk', self.z, g_ov))
 
-        #oppdaterer gradient for parameterene ifølge ligninger 22-25
+        #oppdaterer gradient for parameterene ifølge ligninger 22-25 
+        #tar snittet av de ulike batchene
         self.Wo.params['w']['d'] = (np.sum(np.einsum('ij,bjk,bkl,bml->bim', self.Wv.params['w']['w'], self.z, self.A, self.grad), axis=0)/b).T
         self.Wv.params['w']['d'] = np.sum(np.einsum('ij,bjk,blk,bml->bim', self.Wo.params['w']['w'].T, self.grad, self.A, self.z), axis=0)/b
         self.params['wk']['d'] = np.sum(np.einsum('ij,bjk,bkl,bml->bim', self.Wq,self.z,g_s,self.z), axis=0)/b
@@ -128,12 +129,20 @@ class Attention(Layer):
         #kjører originale step_gd funksjonen fra layers
         super().step_gd(alpha)
 
+    def step_Adam(self, alpha, beta1, beta2, epsilon):
+        #kaller på step adam for linear layers i laget
+        self.Wo.step_Adam(alpha, beta1, beta2, epsilon)
+        self.Wv.step_Adam(alpha, beta1, beta2, epsilon)
+
+        #kjører originale step_adam funksjonen fra layers
+        super().step_gd(alpha)
+
 
 
 class Softmax(Layer):
 
     def __init__(self):
-        
+        super().__init__()
         return
 
     
@@ -159,9 +168,8 @@ class Softmax(Layer):
 class CrossEntropy(Layer):
 
     def __init__(self):
-        """
-        Your code here
-        """
+
+        super().__init__()
         return
 
         
@@ -223,6 +231,8 @@ class LinearLayer(Layer):
                             }
                         }
         
+        super().__init__()
+
 
     def forward(self,x):
         """
@@ -264,6 +274,7 @@ class Relu(Layer):
     """
 
     def __init__(self):
+        super().__init__()
         return
 
     def relu(self,x):
@@ -303,6 +314,7 @@ class EmbedPosition(Layer):
             'd':None,
             'm' : np.zeros_like(self.w),
             'v' : np.zeros_like(self.w)}}
+        super().__init__()
 
     def forward(self,X):
 
@@ -382,6 +394,7 @@ class FeedForward(Layer):
 
         #second linear layer with input size p and output size d
         self.l2 = LinearLayer(p,d,init_scale)
+        super().__init__()
 
 
     def forward(self,x):
@@ -425,6 +438,6 @@ class FeedForward(Layer):
         self.l1.step_gd(step_size)
         self.l2.step_gd(step_size)
     def step_Adam(self, alpha, beta1, beta2, epsilon):
-
+        #kaller på step adam for linear layers i laget
         self.l1.step_Adam(alpha, beta1, beta2, epsilon)
         self.l2.step_Adam(alpha, beta1, beta2, epsilon)
