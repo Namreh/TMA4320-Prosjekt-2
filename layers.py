@@ -184,10 +184,14 @@ class CrossEntropy(Layer):
         self.y = y
         self.Z = Z
 
+
         #Definerer størrelser på dimensjoner
         self.b = Z.shape[0]
         self.m = Z.shape[1]
-        self.n = Z.shape[2]
+        self.n = y.shape[2]
+
+        #fjerner de unødvendige dataene
+        self.Z = self.Z[:,:,-self.n:]
 
         #Definerer ones = (b,m) andre= (b,m,n)
         self.p = np.einsum('bm,bmn->bn', np.ones((self.b,self.m)), np.multiply(Z,onehot(y,self.m)))
