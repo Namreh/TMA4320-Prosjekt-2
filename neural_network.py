@@ -48,5 +48,5 @@ class NeuralNetwork():
         for layer in self.layers:
             #Check if layer is of class a class that has parameters
             if isinstance(layer,(LinearLayer,EmbedPosition,FeedForward,Attention)):
-                layer.step_Adam(alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, j = 0)
+                layer.step_Adam(alpha, beta1, beta2, epsilon, j)
         return

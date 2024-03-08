@@ -37,7 +37,7 @@ class Layer:
     
         for param in self.params:
             self.params[param]['w'] -= alpha*self.params[param]['d']
-
+    '''
     def train_with_Adam(self, L, alpha, beta1, beta2, epsilon, D, niter):
         for j in range(niter):
             for x, y in D:
@@ -47,7 +47,7 @@ class Layer:
 
                 # Gjør Adam-oppdateringer med grad og lagets parametre
                 self.step_Adam(grad, alpha, beta1, beta2, epsilon, j)
-                   
+                   '''
 
 
 class Attention(Layer):
@@ -124,7 +124,7 @@ class Attention(Layer):
         self.Wv.step_gd(alpha)
 
         #kjører originale step_gd funksjonen fra layers
-        super.step_gd(alpha)
+        super().step_gd(alpha)
 
 
 
