@@ -322,7 +322,7 @@ class EmbedPosition(Layer):
 
         #Compute gradient (average over B batches) of loss wrt positional embedding w:
         self.params['Wp']['d'] = np.zeros_like(self.w)
-        self.params['Wp']['d'] += np.sum(grad,axis=0)/b
+        self.params['Wp']['d'][:,:grad.shape[-1]] += np.sum(grad,axis=0)/b
 
         #Use backwards pass of the linear layer
         self.embed.backward(grad)
