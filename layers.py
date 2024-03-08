@@ -22,8 +22,8 @@ class Layer:
             M = self.params[param]['m']
             V = self.params[param]['v']
 
-            self.params[param]['m'] = beta1 + M + (1 - beta1) * G
-            self.params[param]['v'] = beta2 + V + (1 - beta2) * (np.multiply(G,G)) #Kan ta vel ta G**2?
+            self.params[param]['m'] = beta1 * M + (1 - beta1) * G
+            self.params[param]['v'] = beta2 * V + (1 - beta2) * (np.multiply(G,G)) #Kan ta vel ta G**2?
 
             M_hat = M / (1 - beta1**j)
             V_hat = V / (1 - beta2**j)
