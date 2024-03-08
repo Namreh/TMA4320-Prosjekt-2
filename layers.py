@@ -185,7 +185,7 @@ class CrossEntropy(Layer):
         #Definerer størrelser på dimensjoner
         self.b = Z.shape[0]
         self.m = Z.shape[1]
-        self.n = y.shape[2]
+        self.n = y.shape[1]
 
         #fjerner de unødvendige dataene
         self.Z = self.Z[:,:,-self.n:]
