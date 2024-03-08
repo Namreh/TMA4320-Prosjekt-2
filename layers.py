@@ -108,6 +108,9 @@ class Attention(Layer):
         self.grad = grad
         b = grad.shape[0]
 
+        self.Wk = self.params['wk']['w']
+        self.Wq = self.params['wq']['w']
+
         g_ov = self.Wv.backward(self.Wo.backward(self.grad))
         g_s = self.softmax.backward(np.einsum('bij,bik->bjk', self.z, g_ov))
 
