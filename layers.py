@@ -16,7 +16,7 @@ class Layer:
     def backward(self,grad):
         raise NotImplementedError
 
-    def step_Adam(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, j):
+    def step_Adam(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, j = 0):
         #For å unngå to løkker, og samtidig oppdatere j for hver gang
         for param in enumerate(self.params):
             G = self.params[param]['d']
