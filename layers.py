@@ -6,12 +6,8 @@ class Layer:
     """
     Base class for layers in the neural network with forward and backward pass.
     """
-    def __init__(self, M_init=None, V_init=None):
-        self.params = {}
-        if M_init is not None and V_init is not None:
-            for param, M, V in zip(self.params, M_init, V_init):
-                self.params[param + '_M'] = M
-                self.params[param + '_V'] = V
+    def __init__(self):
+        return
 
     def forward(self,inputs):
         raise NotImplementedError
@@ -19,23 +15,24 @@ class Layer:
     def backward(self,grad):
         raise NotImplementedError
 
-    def step_Adam(self, alpha, beta1=0.9, beta2=0.999, epsilon=1e-8):
-
-        t = 0
-        
-        for param in self.params:
-            t += 1
+    def step_Adam(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
+        #For å unngå to løkker, og samtidig oppdatere j for hver gang
+        for j, param in enumerate(self.params, start = 1):
             G = self.params[param]['d']
-            M = self.params[param + '_M']
-            V = self.params[param + '_V']
-            
-            M = beta1 * M + (1 - beta1) * G
-            V = beta2 * V + (1 - beta2) * (G ** 2)
-            
-            M_hat = M / (1 - beta1 ** t)
-            V_hat = V / (1 - beta2 ** t)
-            
-            self.params[param]['w'] -= alpha * M_hat / (np.sqrt(V_hat) + epsilon)
+            M = self.params[param]['m']
+            V = self.params[param]['v']
+
+            self.params[param]['m'] = beta1 + M + (1 - beta1) * G
+            self.params[param]['v'] = beta2 + V + (1 - beta2) * (np.multiply(G,G)) #Kan ta vel ta G**2?
+
+            M_hat = M / (1 - beta1**j)
+            V_hat = V / (1 - beta2**j)
+
+            self.params[param]['w'] -= alpha * (np.divide(M_hat, (np.sqrt(V_hat) + epsilon)))
+
+        return self.params[param]['w']
+        
+
 
     
     def step_gd(self,alpha):
