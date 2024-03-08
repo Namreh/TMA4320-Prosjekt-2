@@ -422,7 +422,7 @@ class FeedForward(Layer):
         #Call the step_gd method of the linear layers
         self.l1.step_gd(step_size)
         self.l2.step_gd(step_size)
-    def step_Adam(self, L, alpha, beta1, beta2, epsilon, D, niter):
+    def step_Adam(self, L, alpha, beta1, beta2, epsilon, j):
 
-        self.l1.step_Adam(L, alpha, beta1, beta2, epsilon, D, niter)
-        self.l2.step_Adam(L, alpha, beta1, beta2, epsilon, D, niter)
+        self.l1.step_Adam(L, alpha, beta1, beta2, epsilon, j)
+        self.l2.step_Adam(L, alpha, beta1, beta2, epsilon, j)
