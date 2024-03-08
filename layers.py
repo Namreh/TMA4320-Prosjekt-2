@@ -100,15 +100,16 @@ class Attention(Layer):
 
     def backward(self,grad):
         self.grad = grad
+        b = grad.shape[0]
 
         g_ov = self.Wv.backward(self.Wo.backward(self.grad))
         g_s = self.softmax.backward(np.einsum('bij,bik->bjk', self.z, g_ov))
 
         #oppdaterer gradient for parameterene ifølge ligninger 22-25
-        self.Wo.params['w']['d'] = np.einsum('ij,bjk,bkl,bml->bim', self.Wv.params['w']['w'], self.z, self.A, self.grad)
-        self.Wv.params['w']['d'] = np.einsum('ij,bjk,blk,bml->bim', self.Wo.params['w']['w'].T, self.grad, self.A, self.z)
-        self.params['wk']['d'] = np.einsum('ij,bjk,bkl,bml->bim', self.Wq,self.z,g_s,self.z)
-        self.params['wq']['d'] = np.einsum('ij,bjk,blk,bml->bim', self.Wk,self.z,g_s,self.z)
+        self.Wo.params['w']['d'] = (np.sum(np.einsum('ij,bjk,bkl,bml->bim', self.Wv.params['w']['w'], self.z, self.A, self.grad), axis=0)/b).T
+        self.Wv.params['w']['d'] = np.sum(np.einsum('ij,bjk,blk,bml->bim', self.Wo.params['w']['w'].T, self.grad, self.A, self.z), axis=0)/b
+        self.params['wk']['d'] = np.sum(np.einsum('ij,bjk,bkl,bml->bim', self.Wq,self.z,g_s,self.z), axis=0)/b
+        self.params['wq']['d'] = np.sum(np.einsum('ij,bjk,blk,bml->bim', self.Wk,self.z,g_s,self.z), axis=0)/b
 
 
         return self.grad + np.einsum('bij,bkj->bik', g_ov, self.A) + np.einsum('ij,ik,bkl,blm->bjm', self.Wk, self.Wq, self.z, g_s) + np.einsum('ij,ik,bkl,bml->bjm', self.Wq, self.Wk, self.z, g_s)
