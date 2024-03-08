@@ -101,7 +101,7 @@ class Attention(Layer):
         self.A = self.softmax.forward(B)
 
         #Ligning 20
-        return self.z  + self.Wo.forward(self.Wv.forward(np.einsum('bij,bjk->bik',self.z,self.A)))
+        return self.z  + self.Wo.forward(self.Wv.forward(np.einsum('bij,bjk->bik',self.z,self.A, optimize=True)))
 
 
     def backward(self,grad):
@@ -119,7 +119,7 @@ class Attention(Layer):
         self.params['wq']['d'] = np.sum(np.einsum('ij,bjk,blk,bml->bim', self.Wk,self.z,g_s,self.z, optimize=True), axis=0)/b
 
 
-        return self.grad + np.einsum('bij,bkj->bik', g_ov, self.A) + np.einsum('ij,ik,bkl,blm->bjm', self.Wk, self.Wq, self.z, g_s) + np.einsum('ij,ik,bkl,bml->bjm', self.Wq, self.Wk, self.z, g_s)
+        return self.grad + np.einsum('bij,bkj->bik', g_ov, self.A, optimize=True) + np.einsum('ij,ik,bkl,blm->bjm', self.Wk, self.Wq, self.z, g_s, optimize=True) + np.einsum('ij,ik,bkl,bml->bjm', self.Wq, self.Wk, self.z, g_s, optimize=True)
     
     #definerer egen step_gd funksjon
     def step_gd(self, alpha):
@@ -189,7 +189,7 @@ class CrossEntropy(Layer):
         self.Y_hat = np.copy(self.Z[:,:,-self.n:])
 
         #Definerer ones = (b,m) andre= (b,m,n)
-        self.p = np.einsum('bm,bmn->bn', np.ones((self.b,self.m)), np.multiply(self.Y_hat,onehot(y,self.m)))
+        self.p = np.einsum('bm,bmn->bn', np.ones((self.b,self.m)), np.multiply(self.Y_hat,onehot(y,self.m)), optimize=True)
         self.q = -np.log(self.p)
 
         self.L = (1/(self.b*self.n))*np.sum(self.q)
@@ -247,7 +247,7 @@ class LinearLayer(Layer):
         
         #Return output of layer
         #y = w@x
-        y = np.einsum('od,bdn->bon',self.params['w']['w'],x)
+        y = np.einsum('od,bdn->bon',self.params['w']['w'],x, optimize=True)
         return y
         
     def backward(self,grad):
@@ -261,11 +261,11 @@ class LinearLayer(Layer):
 
         #Compute gradient (average over B batches) of loss wrt weight w: 
         #dL/dw = (1/B)*sum_b^B (grad_b@x_b^T)
-        self.params['w']['d'] = np.einsum('bon,bdn->od',grad,self.x)/b
+        self.params['w']['d'] = np.einsum('bon,bdn->od',grad,self.x, optimize=True)/b
 
         #Return gradient of loss wrt input of layer
         #dL/dw = w@grad.T
-        return np.einsum('od,bon->bdn',self.params['w']['w'],grad)
+        return np.einsum('od,bon->bdn',self.params['w']['w'],grad, optimize=True)
     
 
 class Relu(Layer):
