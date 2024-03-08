@@ -7,6 +7,7 @@ class Layer:
     Base class for layers in the neural network with forward and backward pass.
     """
     def __init__(self):
+        self.params = {}
         return
 
     def forward(self,inputs):
@@ -31,40 +32,32 @@ class Layer:
             self.params[param]['w'] -= alpha * (np.divide(M_hat, (np.sqrt(V_hat) + epsilon)))
 
         return self.params[param]['w']
-        
-
-
     
     def step_gd(self,alpha):
     
         for param in self.params:
             self.params[param]['w'] -= alpha*self.params[param]['d']
 
-    def train_neural_network_in_batches(self, alpha, beta1, beta2, dataset, n_iter):
-        epsilon = 1e-8
-        t = 0
-        for j in range(n_iter):
-            for k in range(len(dataset)):
-                t += 1
-                x, y = dataset[k]
-                Y_hat = self.forward(x)
-                Ljk = CrossEntropy().forward(Y_hat, y)
-                self.backward(Ljk)
+    def train_with_Adam(self, L, alpha, beta1, beta2, D, niter, epsilon=1e-8):
+        for j in range(1, niter + 1):
+            for k, (x, y) in enumerate(D, start=1):
+                Y_hat = self.forward(x) 
+                L_j_k = L(self.params, Y_hat, y)  # Beregner objektfunksjonen for batch k, iterasjon j.
+
+                gradients = self.backward(L_j_k)  
 
                 for param in self.params:
-                    G = self.params[param]['d']
-                    M = self.params[param + '_M']
-                    V = self.params[param + '_V']
-                    
+                    G = gradients[param]  # Gradient for parameter W
+
+                    # Oppdaterer med Adam
+                    M = self.params[param]['m']
+                    V = self.params[param]['v']
                     M = beta1 * M + (1 - beta1) * G
                     V = beta2 * V + (1 - beta2) * (G ** 2)
-                    
-                    M_hat = M / (1 - beta1 ** t)
-                    V_hat = V / (1 - beta2 ** t)
-                    
-                    self.params[param]['w'] -= alpha * M_hat / (np.sqrt(V_hat) + epsilon)
-
-        return self.params
+                    M_hat = M / (1 - beta1 ** j)
+                    V_hat = V / (1 - beta2 ** j)
+                    self.params[param]['w'] -= alpha * (M_hat / (np.sqrt(V_hat) + epsilon))
+                   
 
 
 class Attention(Layer):
