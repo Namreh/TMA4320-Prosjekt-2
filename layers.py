@@ -16,7 +16,7 @@ class Layer:
     def backward(self,grad):
         raise NotImplementedError
 
-    def step_Adam(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
+    def step_Adam(self, alpha=0.01, beta1=0.9, beta2=0.999, epsilon=1e-8):
         self.j += 1 #oppdaterer hvilken iterasjon vi er på
 
         #For å unngå to løkker, og samtidig oppdatere j for hver gang
@@ -113,10 +113,10 @@ class Attention(Layer):
 
         #oppdaterer gradient for parameterene ifølge ligninger 22-25 
         #tar snittet av de ulike batchene
-        self.Wo.params['w']['d'] = (np.sum(np.einsum('ij,bjk,bkl,bml->bim', self.Wv.params['w']['w'], self.z, self.A, self.grad), axis=0)/b).T
-        self.Wv.params['w']['d'] = np.sum(np.einsum('ij,bjk,blk,bml->bim', self.Wo.params['w']['w'].T, self.grad, self.A, self.z), axis=0)/b
-        self.params['wk']['d'] = np.sum(np.einsum('ij,bjk,bkl,bml->bim', self.Wq,self.z,g_s,self.z), axis=0)/b
-        self.params['wq']['d'] = np.sum(np.einsum('ij,bjk,blk,bml->bim', self.Wk,self.z,g_s,self.z), axis=0)/b
+        self.Wo.params['w']['d'] = (np.sum(np.einsum('ij,bjk,bkl,bml->bim', self.Wv.params['w']['w'], self.z, self.A, self.grad, optimize=True), axis=0)/b).T
+        self.Wv.params['w']['d'] = np.sum(np.einsum('ij,bjk,blk,bml->bim', self.Wo.params['w']['w'].T, self.grad, self.A, self.z, optimize=True), axis=0)/b
+        self.params['wk']['d'] = np.sum(np.einsum('ij,bjk,bkl,bml->bim', self.Wq,self.z,g_s,self.z, optimize=True), axis=0)/b
+        self.params['wq']['d'] = np.sum(np.einsum('ij,bjk,blk,bml->bim', self.Wk,self.z,g_s,self.z, optimize=True), axis=0)/b
 
 
         return self.grad + np.einsum('bij,bkj->bik', g_ov, self.A) + np.einsum('ij,ik,bkl,blm->bjm', self.Wk, self.Wq, self.z, g_s) + np.einsum('ij,ik,bkl,bml->bjm', self.Wq, self.Wk, self.z, g_s)
