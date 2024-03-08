@@ -2,12 +2,12 @@ import numpy as np
 from utils import onehot
 
 class Layer:
-
     """
     Base class for layers in the neural network with forward and backward pass.
     """
     def __init__(self):
         self.params = {}
+        
         return
 
     def forward(self,inputs):
@@ -16,9 +16,11 @@ class Layer:
     def backward(self,grad):
         raise NotImplementedError
 
-    def step_Adam(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, j = 0):
+    def step_Adam(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
+        j = 1
         #For å unngå to løkker, og samtidig oppdatere j for hver gang
         for param in self.params:
+            j += 1
             G = self.params[param]['d']
             M = self.params[param]['m']
             V = self.params[param]['v']
@@ -422,7 +424,7 @@ class FeedForward(Layer):
         #Call the step_gd method of the linear layers
         self.l1.step_gd(step_size)
         self.l2.step_gd(step_size)
-    def step_Adam(self, L, alpha, beta1, beta2, epsilon, j):
+    def step_Adam(self, alpha, beta1, beta2, epsilon):
 
-        self.l1.step_Adam(L, alpha, beta1, beta2, epsilon, j)
-        self.l2.step_Adam(L, alpha, beta1, beta2, epsilon, j)
+        self.l1.step_Adam(alpha, beta1, beta2, epsilon)
+        self.l2.step_Adam(alpha, beta1, beta2, epsilon)
