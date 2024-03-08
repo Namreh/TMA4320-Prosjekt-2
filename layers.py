@@ -16,9 +16,9 @@ class Layer:
     def backward(self,grad):
         raise NotImplementedError
 
-    def step_Adam(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
+    def step_Adam(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, j):
         #For å unngå to løkker, og samtidig oppdatere j for hver gang
-        for j, param in enumerate(self.params, start = 1):
+        for param in enumerate(self.params):
             G = self.params[param]['d']
             M = self.params[param]['m']
             V = self.params[param]['v']
@@ -38,25 +38,15 @@ class Layer:
         for param in self.params:
             self.params[param]['w'] -= alpha*self.params[param]['d']
 
-    def train_with_Adam(self, L, alpha, beta1, beta2, D, niter, epsilon=1e-8):
-        for j in range(1, niter + 1):
-            for k, (x, y) in enumerate(D, start=1):
-                Y_hat = self.forward(x) 
-                L_j_k = L(self.params, Y_hat, y)  # Beregner objektfunksjonen for batch k, iterasjon j.
+    def train_with_Adam(self, L, alpha, beta1, beta2, epsilon, D, niter):
+        for j in range(niter):
+            for x, y in D:
+                output, params = self.forward(x)
+                loss = L(output, y)
+                grad = self.backward(loss, params)
 
-                gradients = self.backward(L_j_k)  
-
-                for param in self.params:
-                    G = gradients[param]  # Gradient for parameter W
-
-                    # Oppdaterer med Adam
-                    M = self.params[param]['m']
-                    V = self.params[param]['v']
-                    M = beta1 * M + (1 - beta1) * G
-                    V = beta2 * V + (1 - beta2) * (G ** 2)
-                    M_hat = M / (1 - beta1 ** j)
-                    V_hat = V / (1 - beta2 ** j)
-                    self.params[param]['w'] -= alpha * (M_hat / (np.sqrt(V_hat) + epsilon))
+                # Gjør Adam-oppdateringer med grad og lagets parametre
+                self.step_Adam(grad, alpha, beta1, beta2, epsilon, j)
                    
 
 
