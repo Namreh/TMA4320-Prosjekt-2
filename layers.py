@@ -69,11 +69,15 @@ class Attention(Layer):
         self.params = {
             'wq':{
                 'w' : self.Wq,
-                'd' : np.zeros_like(self.Wq)
+                'd' : np.zeros_like(self.Wq),
+                'm' : np.zeros_like(self.Wq),
+                'v' : np.zeros_like(self.Wq)
             },
             'wk':{
                 'w' : self.Wk,
-                'd' : np.zeros_like(self.Wk)
+                'd' : np.zeros_like(self.Wk),
+                'm' : np.zeros_like(self.Wk),
+                'v' : np.zeros_like(self.Wk)
             },
         }
     
@@ -211,7 +215,11 @@ class LinearLayer(Layer):
         #scaled with the init_scale
         self.w = np.random.randn(output_size,input_size)*init_scale
         self.params = {"w":{'w':self.w,
-                            'd':np.zeros_like(self.w)}}
+                            'd':np.zeros_like(self.w),
+                            'm' : np.zeros_like(self.w),
+                            'v' : np.zeros_like(self.w)
+                            }
+                        }
         
 
     def forward(self,x):
@@ -288,7 +296,11 @@ class EmbedPosition(Layer):
         self.w = np.random.randn(d,n_max)*init_scale
 
         #Initialize the parameter dictionary for weight with key "Wp"
-        self.params = {"Wp":{'w':self.w,'d':None}}
+        self.params = {"Wp":{
+            'w':self.w,
+            'd':None,
+            'm' : None,
+            'v' : None}}
 
     def forward(self,X):
 
