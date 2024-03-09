@@ -94,9 +94,9 @@ class Attention(Layer):
         B = np.einsum('bij,ki,kl,blm->bjm', self.z, self.Wq, self.Wk, self.z)
 
         #setter nedre triangularen til B til -inf
-        i1, i2 = np.tril_indices(self.k,-1)
+        i1, i2 = np.tril_indices(B.shape[1],-1)
         B[:,i1,i2] -= np.inf
-
+        
         #Utfører softmax
         self.A = self.softmax.forward(B)
 
