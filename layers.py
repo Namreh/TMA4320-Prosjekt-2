@@ -18,7 +18,6 @@ class Layer:
 
     def step_Adam(self, alpha=0.01, beta1=0.9, beta2=0.999, epsilon=1e-8):
         self.j += 1 #oppdaterer hvilken iterasjon vi er på
-
         #For å unngå to løkker, og samtidig oppdatere j for hver gang
         for param in self.params:
             G = self.params[param]['d']
@@ -374,6 +373,12 @@ class EmbedPosition(Layer):
         #which calls the step_gd() of the base class
         #and does gd for the paramters in the params dict
         super().step_gd(step_size)
+    
+    def step_Adam(self, alpha=0.01, beta1=0.9, beta2=0.999, epsilon=1e-8):
+        
+        self.embed.step_Adam(alpha,beta1,beta2,epsilon)
+        
+        super().step_Adam(alpha, beta1, beta2, epsilon)
 
 
 
