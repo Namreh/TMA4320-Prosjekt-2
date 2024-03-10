@@ -249,7 +249,7 @@ class LinearLayer(Layer):
         
         #Return output of layer
         #y = w@x
-        y = np.einsum('od,bdn->bon',self.params['w']['w'],x, optimize=True)
+        y = np.einsum('ij,bjk->bik',self.params['w']['w'],x, optimize=True)
         return y
         
     def backward(self,grad):
