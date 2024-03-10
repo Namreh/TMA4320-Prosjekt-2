@@ -191,7 +191,7 @@ class CrossEntropy(Layer):
 
         #fjerner de unødvendige dataene
         self.Y_hat = np.copy(self.Z[:,:,-self.n:])
-
+        
         #Definerer ones = (b,m) andre= (b,m,n)
         self.p = np.einsum('m,bmn->bn', np.ones((self.m)), np.multiply(self.Y_hat,onehot(y,self.m)), optimize=True)
         self.q = -np.log(self.p)
@@ -206,7 +206,7 @@ class CrossEntropy(Layer):
         self.n = self.Z.shape[-1]
         self.new_Y = np.zeros_like(self.Z)
         
-        self.new_Y[:,:,-self.n:] = onehot(self.y, self.m)
+        self.new_Y[:,:,-self.y.shape[-1]:] = onehot(self.y, self.m)
 
         self.grad_Z = -(1/(self.n*self.b))*(np.divide(self.new_Y,(self.Z + 10e-8)))
 
