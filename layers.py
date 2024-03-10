@@ -89,7 +89,7 @@ class Attention(Layer):
         self.z = z
         
         #Utfører operasjonen z^T @ W_Q^T @ W_K @ z
-        B = np.einsum('bij,ki,kl,blm->bjm', self.z, self.Wq, self.Wk, self.z, optimize=True)
+        B = np.einsum('bij,ki,kl,blm->bjm', self.z, self.params['wq']['w'], self.params['wk']['w'], self.z, optimize=True)
 
         #setter nedre triangularen til B til -inf
         i1, i2 = np.tril_indices(B.shape[1],-1)
