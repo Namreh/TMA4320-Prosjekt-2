@@ -32,7 +32,6 @@ class Layer:
 
             self.params[param]['w'] -= alpha * (np.divide(M_hat, (np.sqrt(V_hat) + epsilon)))
 
-        return self.params[param]['w']
     
     def step_gd(self,alpha):
     
@@ -208,7 +207,7 @@ class CrossEntropy(Layer):
         
         self.new_Y[:,:,-self.y.shape[-1]:] = onehot(self.y, self.m)
 
-        self.grad_Z = -(1/(self.n*self.b))*(np.divide(self.new_Y,(self.Z + 10e-8)))
+        self.grad_Z = -(1/(self.n))*(np.divide(self.new_Y,(self.Z + 10e-8)))
 
         return self.grad_Z
     
