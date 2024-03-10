@@ -191,7 +191,7 @@ class CrossEntropy(Layer):
         self.Y_hat = np.copy(self.Z[:,:,-self.n:])
 
         #Definerer ones = (b,m) andre= (b,m,n)
-        self.p = np.einsum('bm,bmn->bn', np.ones((self.b,self.m)), np.multiply(self.Y_hat,onehot(y,self.m)), optimize=True)
+        self.p = np.einsum('m,bmn->bn', np.ones((self.m)), np.multiply(self.Y_hat,onehot(y,self.m)), optimize=True)
         self.q = -np.log(self.p)
 
         self.L = (1/(self.b*self.n))*np.sum(self.q)
