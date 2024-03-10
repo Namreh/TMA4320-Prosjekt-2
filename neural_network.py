@@ -40,7 +40,7 @@ class NeuralNetwork():
                 layer.step_gd(alpha)
         return
     
-    def step_Adam(self, alpha=0.01, beta1=0.9, beta2=0.999, epsilon=1e-8):
+    def step_Adam(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
         """
         Perform a gradient descent step for each layer,
         but only if it is of the class LinearLayer.
