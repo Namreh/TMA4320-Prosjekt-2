@@ -106,19 +106,22 @@ class Attention(Layer):
     def backward(self,grad):
         self.grad = grad
         b = grad.shape[0]
-
+        
+        #lagrer de forrige stegs parametere
         self.Wk = self.params['wk']['w']
         self.Wq = self.params['wq']['w']
+        self.Wow= self.Wo.params['w']['w']
+        self.Wvw = self.Wv.params['w']['w']
 
         g_ov = self.Wv.backward(self.Wo.backward(self.grad))
         g_s = self.softmax.backward(np.einsum('bij,bik->bjk', self.z, g_ov, optimize=True))
 
         #oppdaterer gradient for parameterene ifølge ligninger 22-25 
         #tar snittet av de ulike batchene
-        self.Wo.params['w']['d'] = (np.einsum('ij,bjk,bkl,bml->im', self.Wv.params['w']['w'], self.z, self.A, self.grad, optimize=True)/b).T
-        self.Wv.params['w']['d'] = np.einsum('ij,bjk,blk,bml->im', self.Wo.params['w']['w'].T, self.grad, self.A, self.z, optimize=True)/b
-        self.params['wk']['d'] = np.einsum('ij,bjk,bkl,bml->im', self.Wq,self.z,g_s,self.z, optimize=True)/b
-        self.params['wq']['d'] = np.einsum('ij,bjk,blk,bml->im', self.Wk,self.z,g_s,self.z, optimize=True)/b
+        self.Wo.params['w']['d'] = (np.einsum('ij,bjk,bkl,bml->im', self.Wvw, self.z, self.A, self.grad, optimize=True)/b).T
+        self.Wv.params['w']['d'] = np.einsum('ij,bjk,blk,bml->im', self.Wow.T, self.grad, self.A, self.z, optimize=True)/b
+        self.params['wk']['d'] = np.einsum('ij,bjk,bkl,bml->im', self.Wq, self.z,g_s,self.z, optimize=True)/b
+        self.params['wq']['d'] = np.einsum('ij,bjk,blk,bml->im', self.Wk, self.z,g_s,self.z, optimize=True)/b
 
 
         return self.grad + np.einsum('bij,bkj->bik', g_ov, self.A, optimize=True) + np.einsum('ij,ik,bkl,blm->bjm', self.Wk, self.Wq, self.z, g_s, optimize=True) + np.einsum('ij,ik,bkl,bml->bjm', self.Wq, self.Wk, self.z, g_s, optimize=True)
@@ -149,7 +152,6 @@ class Softmax(Layer):
 
     
     def forward(self,z):
-
         self.P = np.exp(z-z.max(axis = 1, keepdims = True))
         self.Q = np.sum(self.P, axis = 1, keepdims = True)
         
