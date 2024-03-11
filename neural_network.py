@@ -50,3 +50,15 @@ class NeuralNetwork():
             if isinstance(layer,(LinearLayer,EmbedPosition,FeedForward,Attention)):
                 layer.step_Adam(alpha, beta1, beta2, epsilon)
         return
+    
+    def predict(self, x_test, m, output_length):
+        predictions = []
+        for i in range(x_test.shape[0]):
+            x = x_test[i]
+            for n in range(output_length):
+                X = onehot(x, m)
+                Z = self.forward(X)
+                z = np.argmax(Z, axis=1)
+                x = np.append(x, z[:,-1:], axis=1)
+            predictions.append(x[:,-output_length:])
+        return np.array(predictions)
