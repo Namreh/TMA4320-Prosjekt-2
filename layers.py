@@ -6,7 +6,7 @@ class Layer:
     Base class for layers in the neural network with forward and backward pass.
     """
     def __init__(self):
-        #counter for hvilken iterasjon vi er på
+        #counter for hvilken iterasjon vi er på – blir initialisert i alle underklassene
         self.j = 0
         return
 
@@ -16,14 +16,17 @@ class Layer:
     def backward(self,grad):
         raise NotImplementedError
 
+    #funskjon for steg i ADAM-algoritmen
     def step_Adam(self, alpha=0.01, beta1=0.9, beta2=0.999, epsilon=1e-8):
         self.j += 1 #oppdaterer hvilken iterasjon vi er på
-        #For å unngå to løkker, og samtidig oppdatere j for hver gang
+
         for param in self.params:
+            #henter ut d, m og v matrisene fra dictionarien
             G = self.params[param]['d']
             M = self.params[param]['m']
             V = self.params[param]['v']
 
+            #setter m, v og sådan paramteren etter gitt pseudokode Algoritme 3
             self.params[param]['m'] = beta1 * M + (1 - beta1) * G
             self.params[param]['v'] = beta2 * V + (1 - beta2) * (np.square(G)) #Kan ta vel ta G**2?
 
@@ -32,28 +35,16 @@ class Layer:
 
             self.params[param]['w'] -= alpha * (np.divide(M_hat, (np.sqrt(V_hat) + epsilon)))
 
-    
+    #funksjon for gradient descent
     def step_gd(self,alpha):
-    
         for param in self.params:
             self.params[param]['w'] -= alpha*self.params[param]['d']
-    '''
-    def train_with_Adam(self, L, alpha, beta1, beta2, epsilon, D, niter):
-        for j in range(niter):
-            for x, y in D:
-                output, params = self.forward(x)
-                loss = L(output, y)
-                grad = self.backward(loss, params)
 
-                # Gjør Adam-oppdateringer med grad og lagets parametre
-                self.step_Adam(grad, alpha, beta1, beta2, epsilon, j)
-                   '''
-
-
+#attention lag
 class Attention(Layer):
 
     def __init__(self, d, k):
-        #definerer parametermatrisene Wq Wk som tilfeldige variabler
+        #definerer parametermatrisene Wq Wk som tilfeldige variabler med standardavvik 0.1
         self.Wq = np.random.randn(k,d)*0.1
         self.Wk = np.random.randn(k,d)*0.1
 
@@ -61,8 +52,10 @@ class Attention(Layer):
         self.d = d
         self.k = k
 
-        #definerer nødvendige lag innad i attention laget
+        #initialiserer softmax lag innad i Attention laget
         self.softmax = Softmax()
+        
+        #definerer paramterene Wo og Wv som linear layers – her er Wo transponert
         self.Wo = LinearLayer(k, d)
         self.Wv = LinearLayer(d, k)
 
@@ -86,6 +79,17 @@ class Attention(Layer):
 
 
     def forward(self,z):
+        """
+            Attentionlag i nettverket. Flytter informasjon rundt i matrisene utfra parametermatrisene.
+            Vekter hvilke indekser som påvirker hvilke andre indekser. Flytter informasjon fremover.
+
+            Input:
+                z: (b, d, n)
+
+            Output:
+                z: (b, d, n)
+        """
+
         self.z = z
         
         #Utfører operasjonen z^T @ W_Q^T @ W_K @ z
@@ -95,7 +99,7 @@ class Attention(Layer):
         i1, i2 = np.tril_indices(B.shape[1],-1)
         B[:,i1,i2] -= np.inf
         
-        #Utfører softmax
+        #Utfører softmax på B
         self.A = self.softmax.forward(B)
 
         #Ligning 20
@@ -104,14 +108,15 @@ class Attention(Layer):
 
     def backward(self,grad):
         self.grad = grad
-        b = grad.shape[0]
+        b = grad.shape[0] #finner antall samples
         
-        #lagrer de forrige stegs parametere
+        #Henter ut paramterene fra dictionary
         self.Wk = self.params['wk']['w']
         self.Wq = self.params['wq']['w']
         self.Wow= self.Wo.params['w']['w']
         self.Wvw = self.Wv.params['w']['w']
 
+        #beregning av gradienter ifølge ligning 21
         g_ov = self.Wv.backward(self.Wo.backward(self.grad))
         g_s = self.softmax.backward(np.einsum('bij,bik->bjk', self.z, g_ov, optimize=True))
 
@@ -122,7 +127,7 @@ class Attention(Layer):
         self.params['wk']['d'] = np.einsum('ij,bjk,bkl,bml->im', self.Wq, self.z,g_s,self.z, optimize=True)/b
         self.params['wq']['d'] = np.einsum('ij,bjk,blk,bml->im', self.Wk, self.z,g_s,self.z, optimize=True)/b
 
-
+        #returnerer dLdz jamfør ifølge 21
         return self.grad + np.einsum('bij,bkj->bik', g_ov, self.A, optimize=True) + np.einsum('ij,ik,bkl,blm->bjm', self.Wk, self.Wq, self.z, g_s, optimize=True) + np.einsum('ij,ik,bkl,bml->bjm', self.Wq, self.Wk, self.z, g_s, optimize=True)
     
     #definerer egen step_gd funksjon
@@ -130,7 +135,7 @@ class Attention(Layer):
         self.Wo.step_gd(alpha)
         self.Wv.step_gd(alpha)
 
-        #kjører originale step_gd funksjonen fra layers
+        #kjører originale step_gd funksjonen fra layers for å oppdatere parameterene lagret lokalt
         super().step_gd(alpha)
 
     def step_Adam(self, alpha, beta1, beta2, epsilon):
@@ -142,7 +147,7 @@ class Attention(Layer):
         super().step_Adam(alpha, beta1,beta2,epsilon)
 
 
-
+#softmax lag
 class Softmax(Layer):
 
     def __init__(self):
@@ -151,23 +156,32 @@ class Softmax(Layer):
 
     
     def forward(self,z):
+        """
+            Softmax funksjon. Standardiserer og konstruerer sannsynelighetsfordelingen.
+
+            Input:
+                z: Dimensjoner (b, m, n)
+
+            Output:
+                Z: Dimensjoner (b, m, n)
+        """
+
+        #eksponent av alle elementer, z.max for å unngå overflow
         self.P = np.exp(z-z.max(axis = 1, keepdims = True))
-        self.Q = np.sum(self.P, axis = 1, keepdims = True)
+        self.Q = np.sum(self.P, axis = 1, keepdims = True) #lagrer summen av alle elementer i en kolonne
         
-        self.z_l = np.divide(self.P, (self.Q + 10e-8))
+        self.z_l = np.divide(self.P, (self.Q + 10e-8)) #dividerer elementene på summen
         self.z = z
         return self.z_l
 
-
     def backward(self,g_l):
-        
         S = np.divide(self.P,(np.multiply(self.Q,self.Q)+10e-8))
         delLdelZ = np.multiply(g_l,self.z_l) - np.multiply(np.sum((np.multiply(g_l,S)), axis = 1, keepdims = True),self.P)
         self.delLdelZ = delLdelZ
         return delLdelZ
 
 
-
+#cross entropy lag
 class CrossEntropy(Layer):
 
     def __init__(self):
@@ -178,20 +192,29 @@ class CrossEntropy(Layer):
         
 
     def forward(self,Z,y):
+        """
+            Objektfunksjonen. Gir et tall på hvor god prediksjon som er utført.
 
+            Input:
+                Z: Sannsynelighetsfordelingen gitt av nettverket. Dimensjoner (b,m,n1)
+                y: Riktig prediksjon. Dimensjoner (b,n2).
+            MERK! n2 <= n1 og y er ikke i onehot representasjon.
+
+            Output:
+                L: Objektfunksjonens verdi. Skalar.
+        """
         self.y = y
         self.Z = Z
-
 
         #Definerer størrelser på dimensjoner
         self.b = Z.shape[0]
         self.m = Z.shape[1]
         self.n = y.shape[1]
 
-        #fjerner de unødvendige dataene
+        #fjerner de unødvendige dataene om n2<n1
         self.Y_hat = np.copy(self.Z[:,:,-self.n:])
         
-        #Definerer ones = (b,m) andre= (b,m,n)
+        #utfører operasjon gitt ligning 26
         self.p = np.einsum('m,bmn->bn', np.ones((self.m)), np.multiply(self.Y_hat,onehot(y,self.m)), optimize=True)
         self.q = -np.log(self.p)
 
@@ -202,19 +225,20 @@ class CrossEntropy(Layer):
 
     def backward(self):
 
+        #finner lengden til Z
         self.n = self.Z.shape[-1]
-        self.new_Y = np.zeros_like(self.Z)
+        self.new_Y = np.zeros_like(self.Z) #lager en tom matrise med samme lengde som Z
         
+        #fyller matrisen med samme dimensjoner som Z, med Y sine verdier. Padding til venstre
         self.new_Y[:,:,-self.y.shape[-1]:] = onehot(self.y, self.m)
 
-        self.grad_Z = -(1/(self.n))*(np.divide(self.new_Y,(self.Z + 10e-8)))
+        self.grad_Z = -(1/(self.n))*(np.divide(self.new_Y,(self.Z + 10e-8))) #ligning 27
 
         return self.grad_Z
     
 
 
 class LinearLayer(Layer):
-
     """
     Linear Layer
     """
@@ -446,7 +470,9 @@ class FeedForward(Layer):
         #Call the step_gd method of the linear layers
         self.l1.step_gd(step_size)
         self.l2.step_gd(step_size)
+
     def step_Adam(self, alpha, beta1, beta2, epsilon):
+
         #kaller på step adam for linear layers i laget
         self.l1.step_Adam(alpha, beta1, beta2, epsilon)
         self.l2.step_Adam(alpha, beta1, beta2, epsilon)
