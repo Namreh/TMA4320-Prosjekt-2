@@ -216,7 +216,7 @@ class CrossEntropy(Layer):
         
         #utfører operasjon gitt ligning 26
         self.p = np.einsum('m,bmn->bn', np.ones((self.m)), np.multiply(self.Y_hat,onehot(y,self.m)), optimize=True)
-        self.q = -np.log(self.p)
+        self.q = -np.log10(self.p)
 
         self.L = (1/(self.b*self.n))*np.sum(self.q)
         
