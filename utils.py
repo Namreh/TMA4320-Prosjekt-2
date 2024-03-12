@@ -1,6 +1,6 @@
 import numpy as np
-from neural_network import NeuralNetwork
 import matplotlib.pyplot as plt
+
 
 def createAllSamples():
     #Lager x og y arrays med dimensjon (100, 100, 4) og (100, 100, 3) med alle de mulige tallparene
@@ -51,34 +51,6 @@ def countCorrect_add(y_hat, y):
     print("Totalt antall prediksjoner:", total)
     print("Prosentvis riktige predikasjoner:", round((counter/total)*100, 6), "%")
     return 
-
-def test_Adam(nn: NeuralNetwork, loss, x_data, y_data, n_iters, step_size, m, start, stop):
-    n_batches = x_data.shape[0]
-    mean_losses = np.zeros(n_iters)
-    for j in range(n_iters):
-        losses = []
-        for i in range(n_batches):
-            x = x_data[i]
-            y = y_data[i][:,start:stop]
-            #Forward pass
-            X = onehot(x,m)
-            Z = nn.forward(X)
-            #Backward pass
-            losses.append(loss.forward(Z,y))
-            dLdZ = loss.backward()
-            nn.backward(dLdZ)
-            nn.step_Adam(step_size)
-        mean_loss = np.mean(losses)
-        print("Iterasjon ", str(j+1), " L = ",mean_loss, "")
-        mean_losses[j] = mean_loss
-    #Plotter loss-funksjonen per itterasjon i en logaritmisk skala
-    plt.plot(np.arange(0,n_iters), np.log(mean_losses))
-    plt.xlabel("Iterasjonnummer")
-    plt.ylabel("Logaritmen av loss-funksjon")
-    plt.title("Minimering ved antall iterasjoner")
-    plt.show()
-    #Returnerer gjennomsnittet over objektfunksjonen over batchene
-    return mean_losses
 
 
 def onehot(x,m):
