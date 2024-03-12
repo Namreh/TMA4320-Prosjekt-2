@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+#Funksjon for å generere alle 10 000 mulige kombinasjoner av to tosifrede heltall og summen
 def createAllSamples():
     #Lager x og y arrays med dimensjon (100, 100, 4) og (100, 100, 3) med alle de mulige tallparene
     x_values = np.zeros((100, 100, 4), dtype=int)
@@ -17,7 +17,7 @@ def createAllSamples():
                 y_values[i, j] = [sum_tall // 100, sum_tall // 10 % 10, sum_tall % 10] 
 
     return x_values, y_values
-
+#Funksjon for å telle antall riktige prediksjoner for sortering
 def countCorrect_sort(y_hat, y):
         batches = y_hat.shape[0]
         samples = y_hat[0].shape[0]
@@ -34,7 +34,7 @@ def countCorrect_sort(y_hat, y):
         print("Prosentvis riktige predikasjoner:", (counter/total)*100, "%")
         return
 
-    
+#Funksjon for å telle antall riktige prediksjoner for addisjon
 def countCorrect_add(y_hat, y):
     batches = y_hat.shape[0]
     samples = y_hat[0].shape[0]
