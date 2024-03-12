@@ -52,7 +52,7 @@ def countCorrect_add(y_hat, y):
     print("Prosentvis riktige predikasjoner:", round((counter/total)*100, 6), "%")
     return 
 
-def test_Adam(nn: NeuralNetwork, x_data, y_data, n_iters, step_size, m, start, stop):
+def test_Adam(nn: NeuralNetwork, loss, x_data, y_data, n_iters, step_size, m, start, stop):
     n_batches = x_data.shape[0]
     mean_losses = np.zeros(n_iters)
     for j in range(n_iters):
