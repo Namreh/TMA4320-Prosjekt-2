@@ -15,10 +15,10 @@ def createAllSamples():
                 y_values[i, j] = [0, sum_tall // 10, sum_tall % 10]  
             else:
                 y_values[i, j] = [sum_tall // 100, sum_tall // 10 % 10, sum_tall % 10] 
-                
+
     return x_values, y_values
 
-def countCorrect_sort(self, y_hat, y):
+def countCorrect_sort(y_hat, y):
         batches = y_hat.shape[0]
         samples = y_hat[0].shape[0]
 
@@ -35,7 +35,7 @@ def countCorrect_sort(self, y_hat, y):
         return
 
     
-def countCorrect_add(self, y_hat, y):
+def countCorrect_add(y_hat, y):
     batches = y_hat.shape[0]
     samples = y_hat[0].shape[0]
 
