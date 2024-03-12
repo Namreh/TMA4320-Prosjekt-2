@@ -62,37 +62,3 @@ class NeuralNetwork():
                 x = np.append(x, z[:,-1:], axis=1)
             predictions.append(x[:,-output_length:])
         return np.array(predictions)
-    
-    def countCorrect_sort(self, y_hat, y):
-        batches = y_hat.shape[0]
-        samples = y_hat[0].shape[0]
-
-        counter = 0
-        total = samples*batches
-
-        for b in range(batches):
-            for i in range(samples):
-                if np.sum(y_hat[b,i] - y[b,i]) == 0:
-                    counter += 1
-        print("Antall rette prediksjoner:", counter)
-        print("Totalt antall prediksjoner:", total)
-        print("Prosentvis riktige predikasjoner:", (counter/total)*100, "%")
-        return
-
-    
-    def countCorrect_add(self, y_hat, y):
-        batches = y_hat.shape[0]
-        samples = y_hat[0].shape[0]
-
-        counter = 0
-        total = samples*batches
-        #Ittererer gjennom prediksjoner og forventede svar og teller antall rette prediksjoner
-        for b in range(batches):
-            for i in range(samples):
-                #Tar ut og sammenlikner koresponderende siffer i prediksjon og treningsdata
-                if np.sum(y_hat[b,i] - np.flip(y[b,i])) == 0:
-                        counter += 1
-        print("Antall rette prediksjoner:", counter)
-        print("Totalt antall prediksjoner:", total)
-        print("Prosentvis riktige predikasjoner:", round((counter/total)*100, 6), "%")
-        return 
