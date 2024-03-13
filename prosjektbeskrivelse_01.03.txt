@@ -1,0 +1,146 @@
+
+NTNU, Institutt for Matematiske fag
+
+TMA4320 vår 2024 - Prosjekt i industriell matematikk
+
+Håkon Noren Myhr
+
+Transformermodellen for prediksjon av sekvenser
+
+Skisse av et nevralt nettverk.
+
+Prosjektperiode: 28.02.24 - 12.03.24
+
+Praktisk informasjon Innleveringsfrist: Tirsdag 12.03.24, kl 23.59 Innleveringsplattform: Inspera (Se wikisiden til faget for mer info) Språk: Dere kan velge om dere vil svare på engelsk eller norsk Vurderingsansvarlig: Håkon Noren Myhr, mail: hakon.noren@ntnu.no Innleveringsformat: Jupyter Notebook og separate python-filer. NB! Notebooken skal være kjørt ved innlevering. En enkel måte å sjekke om den er kjørt er å laste ned den endelige notebooken dere skal levere og sjekke at figurene fortsatt er der.
+
+Introduksjon Målet med dette prosjektet er å forstå hvordan dyp læring (deep learning) fungerer. Mer spesifikt skal vi implementere transformermodellen som er av hovedkomponentene i store språkmodeller som ChatGPT.
+
+Dyp læring Dyp læring dreier seg om å lære nyttige funksjoner fra store datasett. Nyttige funksjoner kan for eksempel være en funksjon som tar pikslene i et bilde som input og gir ut en prediksjon om hva slag objekt som er avbildet. Et annet eksempel kan være en funksjon som tar inn en sekvens med heltall, der hvert heltall representerer et ord i en setning, og gir ut en prediksjon om hva neste heltall (eller ord) i sekvensen (eller setningen) bør være. Slik funksjoner kalles nevrale nettverk fθ og de er satt sammen som komposisjoner av mindre funksjoner (derav dyp læring) med parametre θ som må bestemmes ved optimering. Optimering dreier seg om å få en objektfunksjon L ≥ 0 til å bli så liten som mulig ved å justere parametrene θ. Dette kalles gjerne for trening eller læring. Objektfunksjonen er en funksjon av datasettet og parametrene. Optimeringsalgoritmene som brukes er avhenging av å finne de deriverte av L med hensyn på parametrene θ. For å predikere hvilke objekt som er avbildet, trenger vi datasett med bilder og tilhørende beskrivelse eller klassifisering (hund, katt, osv.). For å predikere neste ord i en setning, er vi avhengige av å ha store datasett med tekst.
+
+Bakgrunn for transformermodellen ChatGPT er nettopp en modell som genererer tekst og GPT er en forkortelse for generative pre-trained transformer. Transformermodellen ble introdusert i 2017 og denne typen nevrale nettverk har bidratt til store fremskritt innenfor språkmodellering og i det siste også til å generere video gjennom OpenAI sin SORA modell. Før transformermodellen ble introdusert, var det vanlig å bruke såkalte recurrent neural networks (RNN) for å generere tekst. Transformermodellen løser en del problemer som RNN har, blant annet er RNN-modeller vanskelige å parallellisere og har problemer med propagere informasjon over lange avstander i sekvenser. Attention-mekanismen i transformermodellen er en viktig del av løsningen på disse problemene. Hvis vi har en sekvens med lengde n, kan vi tenke på attention-mekanismen som en måte å flytte informasjon fra posisjon i sekvensen til posisjon j der i = 0, . . . , n − 1. Hvor ”mye” informasjon som flyttes fra posisjon i til posisjon j bestemmes av aij ∈ [0, 1] i en såkalt attention-matrise A ∈ Rn×n.
+
+Prediksjon av sekvenser Den overordnede ideen bak en transformer er å ta inn en sekvens heltall med lengde n og å returnere en ny sekvens heltall med lengde n. Hvert heltall i sekvensen er
+
+ representert ved en vektor med m tall. Disse tallene kalles for embedding vektoren til heltallet. Hvert heltall i inputsekvensen er tilknyttet en unik embedding vektor. Transformermodellen består av flere lag og hvert lag består av flere transformer blokker. Hvert transformer blokk har to hoveddeler: en attention-mekanisme og et feedforward nettverk. I det første steget bruker vi attention-mekanismen til å oppdatere embedding vektoren til hver posisjon i sekvensen. I det andre steget bruker vi feedforward nettverket til å oppdatere de oppdaterte embedding vektorene. Når vi har oppdatert embedding vektorene for alle posisjonene i sekvensen, har vi lagd en ny sekvens med samme lengde som inputsekvensen, men hver posisjon i den nye sekvensen har nå en ny embedding vektor. Slik kan vi fortsette å bruke transformerblokker helt til vi får den sekvensen vi ønsker. I tillegg kan vi legge til en lineær transformasjon i slutten av transformermodellen for å mappe embedding vektorene tilbake til tall. For å trene transformermodellen, er vi avhengig av et datasett med inputsekvenser og tilhørende outputsekvenser. For å trene en språkmodell som GPT-3 trenger vi store datasett med tekst. Hvis vi har en inputsekvens x1, . . . , xn med tilhørende outputsekvens y1, . . . , yn, kan vi bruke optimeringsalgoritmer som stochastic gradient descent (SGD) eller Adam til å få en objektfunksjon L(θ) til å bli så liten som mulig ved å justere parametrene θ. Neste steg er å bruke transformermodellen til å predikere en outputsekvens ŷ1, . . . , ŷn gitt en inputsekvens x1, . . . , xn.
+
+Avslutning I dette prosjektet skal dere implementere transformermodellen som en måte å predikere en outputsekvens y1, . . . , yn gitt en inputsekvens x1, . . . , xn. Transformermodellen skal implementeres ved hjelp av Python og PyTorch. I tillegg skal dere skrive en kort rapport om implementasjonen og hvilke tanker dere gjorde dere underveis. Lykke til!
+
+Her er teksten uten symboler og annet enn ren tekst:
+
+---
+
+Algorithm 2 Pseudokode for å gjennomføre et backward pass for å beregne de deriverte av objektfunksjonen L med hensyn på parameterne W ∈ θ.
+Require: {bl }L
+
+Optimeringsalgoritmen
+
+men det er mange varianter av denne algoritmen som er mer effektive. En av de mest
+populære er Adam (Adaptive moment) algoritmen [4]. Adam innfører to nye variabler
+Mj og Vj med samme dimensjoner som Wj som inkluderer informasjon om tidligere
+verdier av den deriverte. I praksis blir Adam algoritmen som en variant av gradient
+descent der vi justerer læringsraten α individuelt for hver komponent av W basert på
+tidligere verdier av gradienten. Vi bruker Algoritme 2 for å finne den deriverte av L for
+hver parameter og Adam er gitt i Algoritme 3.
+Det er nødvendig å kommentere notasjonen i algoritmen. For to matriser A, B ∈
+Rm×n er Hadamardproduktet A ⊙ B elementvis multiplikasjon slik at [A ⊙ B]
+qij = aij · bij
+og A ⊘ B er elementvis divisjon slik at [A ⊘ B]ij =
+elementvis definert.
+
+
+er potenser av β1 og β2 bestemt av iterasjonsnummeret j.
+
+Oppdeling av treningsdata i batcher
+
+For store datasett er det vanlig å dele opp datasettet i mindre deler som kalles batches
+eller minibatches. For et datasett med D = 1000 datapunkter {x(i) , y (i) } kunne vi beregnet objektfunksjonen i likning (12) med alt fra 1 til 1000 datapunkter før vi oppdaterer
+parametrene. Dette er imidlertid lite effektivt og vi kan i stedet dele opp datasettet i
+B batcher D(1) , D(2) , . . . , D(B) med b datapunkter i hver batch. Jo flere datapunkter vi
+har i hver batch, jo mindre varians får vi i estimatene av de deriverte, siden vi beregner
+
+18
+
+
+end for
+gjennomsnittet av objektfunksjonen over flere observasjoner. Det er ikke helt enkelt å si
+hva som er en optimal batchstørrelse, men typiske valg er b ∈ [100, 500].
+Vi kan dermed beregne objektfunksjonen for hver batch og oppdatere parametrene
+etter hver batch. Dette gir oss Algoritme 4.
+Algorithm 4 Trening av nevralt nettverk i batcher.
+Require: L: Objektfunksjon. θ: Parametrene vi optimerer. α, β1 , β2 : Parametre til
+Adam. D: Datasett oppdelt i batcher. Et nevralt nettverk fθ gitt ved {fl , bl }L−1
+
+end for
+end for
+Beregningsmessig vil det være en stor fordel å implementere alle funksjoner til å
+fungere på b inputsekvenser x parallelt, i stedet for å bruke for-løkker. For å oppnå
+dette, kan vi representere en batch med input som x ∈ Rb×n , der b er batchstørrelsen og
+n er lengden på inputsekvensene. Dette gjør at vi får følgende dimensjoner på variablene
+
+
+Inputsekvenser
+One-hot representasjon av inputsekvenser
+Output fra transformer-lag l
+Sannsynlighetsfordelinger over m utfall
+Prediksjon, de siste elementene gir ŷ
+
+Det er viktig å merke seg at vi dermed også får en ekstra dimensjon for de deriverte gl
+og variablene vi lagrer under forward-pass vl i Algoritme 1 og 2. Parametermatrisene
+W ∈ θ er imidlertid de samme og får ikke en ekstra dimensjon. Funksjonen np.einsum()
+i numpy kan være nyttig for å implementere matrisemultiplikasjon effektivt når
+
+ vi har
+mange dimensjoner. En introduksjon til denne funksjonen finnes i vedlagt Jupyter notebook.
+
+Oppgaver
+
+Oppgave 1
+Denne oppgaven handler om å forstå hvordan datasettene og transformermodellen er
+strukturert.
+1. Gi et eksempel (som i likning (10)) på hvordan et datasett {x, y} ville sett ut for
+å trene en transformermodell for å predikere et heltall d gitt d = a · b + c der a, c
+er tosifrede heltall, mens b er et ettsifret heltall, altså 9 ≥ b ∈ Z.
+2. Når optimeringen er ferdig, hvordan kan vi bruke modellen fθ til å predikere d gitt
+a, b, c? Vis dette med et eksempel, på samme måte som i likning (11).
+3. Anta at vi bruker cross-entropy som objektfunksjon, at m = 5 og y = [4, 3, 2, 1].
+Hvilke diskret sannsynlighetsfordeling Ŷ ville gitt en objektfunksjon L(θ, D) = 0?
+Hva ville ŷ vært i dette tilfellet?
+4. Gitt d, m, nmax , k, p og L. Hvor mange enkeltparametre har en transformermodell? Med enkeltparametre mener vi hvor mange tall w ∈ R vi må bestemme ved
+optimering. En matrise W ∈ Rm×n består av m · n tall eller enkeltparametre.
+5. Transformermodellen er gitt i likningene (4) - (9). La n = nmax = 1, m = d = k =
+p = 2 og L = 1. Anta videre at WO = WV = WQ = WK = W1 = W2 = WU = I2×2
+og at σ(x) = Relu(x) = max(0, x). Dersom
+
+vis at vi må ha α > 1 for å få ẑ = [1] som output når input er x = [1].
+Husk at matrisen D ∈ Rn×n , beskrevet i kapittel 2.2.2, er null på den øvre triangulære delen inkludert diagonalen. For n = 1 har vi dermed at D = 0.
+
+Oppgave 2
+Målet er nå å bruke objektorientert programmering i Python til å implementere lagene
+i en transformermodell med backward og forward pass, samt Adam-steget.
+1. I den utdelte koden layers.py og neural network.py finnes en objektorientert implementering av et nevralt nettverk som kan ha lineære lag og en Reluaktiveringsfunksjon. I tillegg er embedding og posisjonsenkoding samt feed-forward
+lag implementert.
+Forklar hvordan NeuralNetwork bruker arv, eller inheritance, for å utføre en iterasjon av gradient descent (step gd()) hvis vi antar det er initiert med minst ett
+LinearLayer i listen layers. En introduksjon til objektorientert programmering
+i Python finnes her.
+2. Følg strukturen i utdelt kode og implementer:
+• Softmax
+For å unngå numerisk ustabilitet (overflow i exp), kan du bruke følgende triks
+når du beregner P, Q i softmax over aksen axis:
+P = np.exp(x - x.max(axis=axis,keepdims=True))
+Q = np.sum(P,axis=axis,keepdims=True)
+• Cross-entropy
+• Unembedding.
+Kan implementeres som et lineært lag med riktig valg av dimensjoner.
+• Attention
+For å sette den triangulære delen under diagonalen i en n × n matrise B til
+−∞, kan du gjøre følgende:
+i1,i2 = np.tril indices(n,-1)
+B[i1,i2] -= np.inf
+på liknende måte. Husk at noen av lagene kan bestå av flere underliggende lag,
+slik som softmax i attention. Hent gjerne inspirasjon fra hvordan dette er løst i de
+utdelte lagene i FeedForward og EmbedPosition. Hvis du klarer å utnytte dette,
+kan dette gjøre implementasjonen enklere. Appendiks A gir deg de deriverte du
+trenger for å implementere disse lagene, samt forward pass. Husk også på at du
+må lagre variabler som trengs for å beregne de deriverte under forward pass, slik
+som x i LinearLayer.
+3. Implementer Adam-steget, altså den indre delen av for-løkken
